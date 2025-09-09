@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Quiz Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #0a2342 0%, #0a0714 100%);
+      color: #140e18;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+    }
+
+    .quiz-container {
+      background: rgba(255,255,255,0.15);
+      border-radius: 24px;
+      box-shadow: 0 12px 40px rgba(10,35,66,0.25), 0 1.5px 8px rgba(46,139,192,0.15);
+      padding: 40px 32px;
+      width: 95%;
+      max-width: 480px;
+      text-align: center;
+      backdrop-filter: blur(18px);
+      border: 1.5px solid rgba(255,255,255,0.18);
+      animation: fadeIn 1.2s cubic-bezier(.42,0,.58,1);
+      position: relative;
+    }
+
+    .quiz-container::before {
+      content: "";
+      position: absolute;
+      top: -30px; left: -30px; right: -30px; bottom: -30px;
+      z-index: -1;
+      border-radius: 32px;
+      background: linear-gradient(120deg, #ffd70033 0%, #2e8bc033 100%);
+      filter: blur(32px);
+    }
+
+    h1 {
+      font-size: 2.1rem;
+      margin-bottom: 12px;
+      color: #ffd700;
+      text-shadow: 0 2px 18px #2e8bc0, 0 0 2px #fff;
+      letter-spacing: 1px;
+      font-weight: 800;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffd700 60%, #2e8bc0 100%);
+      display: inline-block;
+    }
+
+    .progress-bar {
+      height: 12px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.18);
+      overflow: hidden;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px #2e8bc033;
+    }
+
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ffd700 0%, #2e8bc0 100%);
+      transition: width 0.5s cubic-bezier(.42,0,.58,1);
+      box-shadow: 0 0 8px #ffd70088;
+    }
+
+    .counter {
+      font-size: 1rem;
+      margin-bottom: 18px;
+      color: #eee;
+      font-weight: 600;
+    }
+
+    .question {
+      font-size: 1.25rem;
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 8px #2e8bc0;
+    }
+
+    .options {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    button.option {
+      padding: 14px 0;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(90deg, magenta 0%, #ffd700 100%);
+      color: #0a2342;
+      font-size: 1.08rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 12px magenta;
+      transition: background 0.3s, color 0.3s, transform 0.2s;
+      outline: none;
+    }
+
+    button.option:hover:not(:disabled) {
+      background: linear-gradient(90deg, #ffd700 0%, magenta 100%);
+      color: #fff;
+      transform: scale(1.04);
+      box-shadow: 0 4px 16px magenta;
+    }
+
+    button.option:disabled {
+      opacity: 0.85;
+      cursor: not-allowed;
+    }
+
+    .feedback {
+      margin-bottom: 10px;
+      font-weight: bold;
+      min-height: 24px;
+      font-size: 1.08rem;
+      letter-spacing: 0.5px;
+      transition: color 0.3s;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .score-container {
+      font-size: 1.35rem;
+      margin-top: 20px;
+      color: #ffd700;
+      font-weight: 700;
+      text-shadow: 0 1px 8px #2e8bc0;
+    }
+
+    .btn {
+      margin-top: 16px;
+      padding: 12px 28px;
+      background: linear-gradient(90deg, #ffd700 0%, #2e8bc0 100%);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1.08rem;
+      color: #0a2342;
+      box-shadow: 0 2px 12px #ffd70044;
+      transition: background 0.3s, color 0.3s, transform 0.2s;
+    }
+
+    .btn:hover {
+      background: linear-gradient(90deg, #2e8bc0 0%, #ffd700 100%);
+      color: #fff;
+      transform: scale(1.05);
+      box-shadow: 0 4px 16px #2e8bc044;
+    }
+
+    @media (max-width: 600px) {
+      .quiz-container {
+        padding: 18px 12px;
+        border-radius: 16px;
+      }
+      h1 { font-size: 1.4rem; }
+      .score-container { font-size: 1.1rem; }
+      .question { font-size: 1rem; }
+      button.option, .btn { font-size: 0.95rem; padding: 10px 0; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <div class="logo"></div>
+    <h1>Quiz Game ⚡</h1>
+    <div class="progress-bar"><div class="progress" id="progress"></div></div>
+    <div class="counter" id="counter"></div>
+    <div class="question" id="question">Loading...</div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button id="next-btn" class="btn hidden">Next</button>
+    <div class="score-container hidden" id="score-container"></div>
+    <button id="restart-btn" class="btn hidden">Restart Quiz</button>
+  </div>
+
+  <script>
+    const quizData = [
+      { question: "Which language is used for styling web pages?", options: ["HTML", "JQuery", "CSS", "XML"], answer: 2 },
+      { question: "Which is not a JavaScript Framework?", options: ["Python Script", "JQuery", "Django", "NodeJS"], answer: 2 },
+      { question: "Which is used for web apps?", options: ["PHP", "Python", "JavaScript", "All of the above"], answer: 3 },
+      { question: "Which HTML tag is used to display images?", options: ["<img>", "<src>", "<image>", "<pic>"], answer: 0 },
+      { question: "Which company developed JavaScript?", options: ["Netscape", "Bell Labs", "Sun Microsystems", "IBM"], answer: 0 }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let shuffledQuiz = [];
+    let timer = null;
+    let timeLeft = 10; // seconds per question
+    const TIMER_DURATION = 10;
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const feedbackEl = document.getElementById("feedback");
+    const nextBtn = document.getElementById("next-btn");
+    const scoreContainer = document.getElementById("score-container");
+    const restartBtn = document.getElementById("restart-btn");
+    const progressEl = document.getElementById("progress");
+    const counterEl = document.getElementById("counter");
+
+    // Timer UI
+    const timerEl = document.createElement("div");
+    timerEl.style.fontWeight = "700";
+    timerEl.style.fontSize = "1.1rem";
+    timerEl.style.marginBottom = "10px";
+    timerEl.style.color = "#ffd700";
+    timerEl.id = "timer";
+    questionEl.parentNode.insertBefore(timerEl, questionEl);
+
+    // Sound effects
+    const correctSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_115b6c2b8b.mp3");
+    const wrongSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_115b6c2b8b.mp3");
+    wrongSound.playbackRate = 0.7;
+
+    // Utility: Shuffle array
+    function shuffleArray(arr) {
+      return arr.map(a => [Math.random(), a])
+                .sort((a, b) => a[0] - b[0])
+                .map(a => a[1]);
+    }
+
+    // Fade-in animation for questions
+    function fadeIn(el) {
+      el.style.opacity = 0;
+      el.style.transition = "opacity 0.5s";
+      setTimeout(() => { el.style.opacity = 1; }, 50);
+    }
+
+    function loadQuestion() {
+      clearInterval(timer);
+      timeLeft = TIMER_DURATION;
+      timerEl.textContent = `⏰ Time left: ${timeLeft}s`;
+      timerEl.style.color = "#ffd700";
+      timer = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = `⏰ Time left: ${timeLeft}s`;
+        if (timeLeft <= 3) timerEl.style.color = "#ff4444";
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          timerEl.textContent = "⏰ Time's up!";
+          feedbackEl.textContent = "⏰ Time's up!";
+          feedbackEl.style.color = "#ff4444";
+          disableOptions();
+          nextBtn.classList.remove("hidden");
+          wrongSound.play();
+        }
+      }, 1000);
+
+      const q = shuffledQuiz[currentQuestion];
+      questionEl.textContent = q.question;
+      counterEl.textContent = `Question ${currentQuestion + 1} of ${shuffledQuiz.length}`;
+      optionsEl.innerHTML = "";
+      feedbackEl.textContent = "";
+      nextBtn.classList.add("hidden");
+
+      // Shuffle options
+      const optionOrder = shuffleArray(q.options.map((opt, i) => ({ text: opt, index: i })));
+      optionOrder.forEach(obj => {
+        const btn = document.createElement("button");
+        btn.classList.add("option");
+        btn.textContent = obj.text;
+        btn.addEventListener("click", () => selectAnswer(obj.index));
+        optionsEl.appendChild(btn);
+      });
+
+      fadeIn(questionEl);
+      fadeIn(optionsEl);
+      updateProgress();
+    }
+
+    function disableOptions() {
+      document.querySelectorAll(".option").forEach(btn => btn.disabled = true);
+    }
+
+    function selectAnswer(selected) {
+      clearInterval(timer);
+      const correct = shuffledQuiz[currentQuestion].answer;
+      const buttons = document.querySelectorAll(".option");
+
+      buttons.forEach((btn, i) => {
+        btn.disabled = true;
+        if (btn.textContent === shuffledQuiz[currentQuestion].options[correct]) {
+          btn.style.background = "green";
+          btn.style.color = "#fff";
+        }
+        if (btn.textContent === shuffledQuiz[currentQuestion].options[selected] && selected !== correct) {
+          btn.style.background = "red";
+        }
+      });
+
+      if (selected === correct) {
+        score++;
+        feedbackEl.textContent = "✅ Correct!";
+        feedbackEl.style.color = "#00ff88";
+        correctSound.play();
+      } else {
+        feedbackEl.textContent = "❌ Wrong!";
+        feedbackEl.style.color = "#ff4444";
+        wrongSound.play();
+      }
+
+      nextBtn.classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion < shuffledQuiz.length) {
+        loadQuestion();
+      } else {
+        showScore();
+      }
+    }
+
+    function showScore() {
+      clearInterval(timer);
+      questionEl.classList.add("hidden");
+      optionsEl.classList.add("hidden");
+      feedbackEl.classList.add("hidden");
+      nextBtn.classList.add("hidden");
+      timerEl.classList.add("hidden");
+      progressEl.style.width = "100%";
+      scoreContainer.classList.remove("hidden");
+      restartBtn.classList.remove("hidden");
+
+      let stars = "⭐".repeat(score);
+      let message = "";
+      if (score === shuffledQuiz.length) {
+        message = "Perfect! 🌟 You’re a Quiz Master!";
+      } else if (score >= shuffledQuiz.length / 2) {
+        message = "Well done! Keep practicing!";
+      } else {
+        message = "Don’t worry, try again! 🚀";
+      }
+
+      // Save score to localStorage
+      let pastScores = JSON.parse(localStorage.getItem("quizScores") || "[]");
+      pastScores.push({ score, total: shuffledQuiz.length, date: new Date().toLocaleString() });
+      localStorage.setItem("quizScores", JSON.stringify(pastScores));
+
+      // Show past scores
+      let history = "<br><b>Past Scores:</b><ul style='text-align:left;'>";
+      pastScores.slice(-5).reverse().forEach(s =>
+        history += `<li>${s.score}/${s.total} on ${s.date}</li>`
+      );
+      history += "</ul>";
+
+      scoreContainer.innerHTML = `🎉 You scored ${score} out of ${shuffledQuiz.length}<br>${stars}<br><span>${message}</span>${history}`;
+    }
+
+    function restartQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      shuffledQuiz = shuffleArray(quizData);
+      questionEl.classList.remove("hidden");
+      optionsEl.classList.remove("hidden");
+      feedbackEl.classList.remove("hidden");
+      scoreContainer.classList.add("hidden");
+      restartBtn.classList.add("hidden");
+      timerEl.classList.remove("hidden");
+      loadQuestion();
+    }
+
+    function updateProgress() {
+      const percent = ((currentQuestion) / shuffledQuiz.length) * 100;
+      progressEl.style.transition = "width 0.5s cubic-bezier(.42,0,.58,1)";
+      progressEl.style.width = percent + "%";
+    }
+
+    nextBtn.addEventListener("click", nextQuestion);
+    restartBtn.addEventListener("click", restartQuiz);
+
+    // Initialize
+    shuffledQuiz = shuffleArray(quizData);
+    loadQuestion();
+  </script>
+</body>
+</html>
